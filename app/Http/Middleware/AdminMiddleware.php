@@ -36,6 +36,10 @@ class AdminMiddleware
 
         // Check if the user has the 'admin' role
         if ($user->role !== 'admin') {
+            app(\App\Services\IntsecClient::class)->sendSecurityEvent([
+                'event_type' => 'unauthorized_access', 'ip' => $request->ip(), 'route' => '/'.$request->path(), 'method' => $request->method(),
+                'user_agent' => $request->userAgent(), 'message' => 'Unauthorized administrator endpoint access.', 'metadata' => ['required_role' => 'admin'],
+            ]);
             // User does not have admin role - deny access
             // Return 403 Forbidden response
             abort(403, 'Unauthorized. Only administrators can access this page.');

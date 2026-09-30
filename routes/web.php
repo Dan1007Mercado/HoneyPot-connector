@@ -12,6 +12,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\GuestBookingController;
 use App\Http\Controllers\GuestCheckController;
+use App\Http\Controllers\MonitoredLoginController;
 
 /*
 |--------------------------------------------------------------------------
@@ -104,6 +105,7 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::match(['get', 'post'], '/security/monitored-login', MonitoredLoginController::class)->name('security.monitored-login');
 
 // =========================================================================
 // PROTECTED ROUTES (AUTHENTICATED)
