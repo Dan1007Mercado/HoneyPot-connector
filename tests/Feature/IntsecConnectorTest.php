@@ -35,3 +35,21 @@ it('retains the last known blocklist when central service is unavailable', funct
     Cache::forget('intsec.active-blocked-ips');
     expect($client->activeBlockedIps())->toBe(['203.0.113.9']);
 });
+
+it('sends sanitized request activity to the shared INTSEC endpoint', function (): void {
+    Http::fake(['https://intsec.test/api/security/request-activities' => Http::response([], 201)]);
+
+    expect(app(IntsecClient::class)->sendRequestActivity([
+        'request_id' => '00000000-0000-4000-8000-000000000010',
+        'ip' => '8.8.4.4',
+        'method' => 'GET',
+        'path' => '/hotel',
+        'status_code' => 200,
+        'is_authenticated' => false,
+        'metadata' => ['password' => 'must-not-leak'],
+    ]))->toBeTrue();
+
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://intsec.test/api/security/request-activities'
+        && $request['source'] === 'hotel-booking'
+        && ! isset($request['metadata']['password']));
+});

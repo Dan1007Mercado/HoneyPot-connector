@@ -11,8 +11,19 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->appendToGroup('web', \App\Http\Middleware\EnforceIntsecBlockedIps::class);
-        // Register custom middleware aliases
+
+        // Required when Laravel is behind Cloudflare Tunnel
+        $middleware->trustProxies(at: '*');
+
+        $middleware->appendToGroup(
+            'web',
+            \App\Http\Middleware\ReportRequestActivityToIntsec::class
+        );
+        $middleware->appendToGroup(
+            'web',
+            \App\Http\Middleware\EnforceIntsecBlockedIps::class
+        );
+
         $middleware->alias([
             'receptionist' => \App\Http\Middleware\ReceptionistMiddleware::class,
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
@@ -20,4 +31,5 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
-    })->create();
+    })
+    ->create();
