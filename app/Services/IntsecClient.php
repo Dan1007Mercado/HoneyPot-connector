@@ -37,18 +37,39 @@ class IntsecClient
     /** @return array<int, string> */
     public function activeBlockedIps(): array
     {
-        return Cache::remember('intsec.active-blocked-ips', max(1, (int) config('intsec.blocklist_cache_seconds')), function (): array {
+        $freshKey = 'intsec.active-blocked-ips';
+        $staleKey = 'intsec.last-known-blocked-ips';
+
+        if (Cache::has($freshKey)) {
+            return (array) Cache::get($freshKey, []);
+        }
+
+        $blockedIps = null;
             $token = (string) config('intsec.api_token');
-            if ($token === '') return [];
+        if ($token === '') {
+            return (array) Cache::get($staleKey, []);
+        }
+
             try {
                 $response = Http::acceptJson()->withToken($token)->connectTimeout(1)->timeout(2)
                     ->get(config('intsec.api_url').'/api/security/blocked-ips');
-                if ($response->successful()) return collect($response->json('data', []))->pluck('ip_address')->filter()->values()->all();
+            if ($response->successful()) {
+                $blockedIps = collect($response->json('data', []))->pluck('ip_address')->filter()->values()->all();
+            } else {
                 Log::warning('INTSEC blocklist retrieval was rejected.', ['status' => $response->status()]);
-            } catch (Throwable $exception) {
-                Log::warning('INTSEC blocklist retrieval failed; allowing request.', ['exception' => $exception->getMessage()]);
             }
-            return [];
-        });
+            } catch (Throwable $exception) {
+            Log::warning('INTSEC blocklist retrieval failed; retaining the last known policy.', ['exception' => $exception->getMessage()]);
+            }
+
+        if ($blockedIps === null) {
+            return (array) Cache::get($staleKey, []);
+        }
+
+        $seconds = max(1, (int) config('intsec.blocklist_cache_seconds'));
+        Cache::put($freshKey, $blockedIps, $seconds);
+        Cache::forever($staleKey, $blockedIps);
+
+        return $blockedIps;
     }
 }
