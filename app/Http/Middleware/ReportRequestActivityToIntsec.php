@@ -18,6 +18,7 @@ class ReportRequestActivityToIntsec
     {
         $startedAt = hrtime(true);
         $occurredAt = now();
+        $request->attributes->set('intsec_request_id', (string) Str::uuid());
 
         try {
             $response = $next($request);
@@ -35,7 +36,7 @@ class ReportRequestActivityToIntsec
     {
         try {
             $this->intsec->sendRequestActivity([
-                'request_id' => (string) Str::uuid(),
+                'request_id' => (string) $request->attributes->get('intsec_request_id'),
                 'ip' => (string) $request->ip(),
                 'method' => strtoupper($request->method()),
                 'path' => '/'.ltrim($request->path(), '/'),

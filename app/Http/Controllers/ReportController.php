@@ -148,7 +148,9 @@ class ReportController extends Controller
         } catch (\Exception $e) {
             Log::error('Report generation failed: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
-                'request' => $request->all()
+                'report_type' => $request->input('report_type'),
+                'start_date' => $request->input('start_date'),
+                'end_date' => $request->input('end_date'),
             ]);
             return back()->with('error', 'Failed to generate report: ' . $e->getMessage());
         }

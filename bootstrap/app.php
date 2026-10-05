@@ -21,6 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
         );
         $middleware->appendToGroup(
             'web',
+            \App\Http\Middleware\DetectSqlInjectionAttempts::class
+        );
+        $middleware->appendToGroup(
+            'web',
             \App\Http\Middleware\EnforceIntsecBlockedIps::class
         );
 

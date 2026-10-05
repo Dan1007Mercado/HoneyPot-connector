@@ -133,7 +133,9 @@ class GuestBookingController extends Controller
     public function checkAvailability(Request $request)
     {
         try {
-            Log::info('Guest check availability request started', $request->all());
+            Log::info('Guest check availability request started', $request->only([
+                'check_in_date', 'check_out_date', 'room_type_id', 'num_rooms',
+            ]));
             
             $request->validate([
                 'check_in_date' => 'required|date|after_or_equal:today',
@@ -224,7 +226,9 @@ class GuestBookingController extends Controller
     public function prepareBooking(Request $request)
     {
         try {
-            Log::info('Prepare booking request started', $request->all());
+            Log::info('Prepare booking request started', $request->only([
+                'room_type_id', 'check_in_date', 'check_out_date', 'num_rooms', 'num_guests',
+            ]));
             
             $request->validate([
                 'room_type_id' => 'required|exists:room_types,room_type_id',
@@ -317,7 +321,7 @@ class GuestBookingController extends Controller
     public function confirmBooking(Request $request)
     {
         try {
-            Log::info('Confirm booking request started', $request->except(['first_name', 'last_name', 'email', 'contact_number']));
+            Log::info('Confirm booking request started');
             
             $request->validate([
                 'first_name' => 'required|string|max:100',
@@ -332,7 +336,7 @@ class GuestBookingController extends Controller
 
             $tempBooking = session('temp_booking');
             
-            Log::info('Temp booking from session:', $tempBooking ?? ['no_temp_booking' => true]);
+            Log::info('Temporary booking state loaded.', ['present' => $tempBooking !== null]);
             
             if (!$tempBooking || $tempBooking['reference'] !== $request->temp_reference) {
                 Log::warning('Invalid temp booking reference or no session');
