@@ -11,11 +11,11 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-COPY resources ./resources
-COPY public ./public
-COPY vite.config.js ./
+COPY . .
 
-RUN npm run build
+RUN npm run build \
+    && test -f public/build/manifest.json \
+    && find public/build -maxdepth 2 -type f -print
 
 
 FROM php:8.3-apache-bookworm
