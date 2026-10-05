@@ -283,7 +283,7 @@ Route::middleware('auth')->group(function () {
 // =========================================================================
 
 Route::prefix('booking')->group(function () {
-    Route::post('/confirm', [GuestBookingController::class, 'confirmBooking'])->name('guest.booking.confirm');
+    Route::post('/confirm', [GuestBookingController::class, 'confirmBooking'])->name('guest.booking.modal-confirm');
     Route::post('/process-payment', [GuestBookingController::class, 'confirmBooking'])->name('guest.booking.process-payment');
 });
 
